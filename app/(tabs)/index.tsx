@@ -1,35 +1,41 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useState } from 'react';
+import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function HomeScreen() {
-  const [previousReading, setPreviousReading] = useState("");
-  const [currentReading, setCurrentReading] = useState("");
-  const [bill, setBill] = useState<number | null>(null);
+  const [previousReading, setPreviousReading] = useState<string>('');
+  const [currentReading, setCurrentReading] = useState<string>('');
+  const [rate, setRate] = useState<string>('');
+  const [totalUnits, setTotalUnits] = useState<number | null>(null);
+  const [totalBill, setTotalBill] = useState<number | null>(null);
 
   const calculateBill = () => {
     const prev = parseFloat(previousReading);
     const curr = parseFloat(currentReading);
+    const ratePerUnit = parseFloat(rate);
 
-    if (isNaN(prev) || isNaN(curr) || curr < prev) {
-      setBill(null);
-      alert("Please enter valid readings. Current must be greater than previous.");
+    if (isNaN(prev) || isNaN(curr) || isNaN(ratePerUnit)) {
+      Alert.alert('Invalid Input', 'Please enter valid numbers.');
       return;
     }
 
     const units = curr - prev;
-    let amount = 0;
+    const bill = units * ratePerUnit;
 
-    // Simple sample rate logic
-    if (units <= 100) amount = units * 5;          // ₹5 per unit for first 100
-    else if (units <= 200) amount = 100 * 5 + (units - 100) * 7;  // ₹7 for next 100
-    else amount = 100 * 5 + 100 * 7 + (units - 200) * 10;         // ₹10 beyond 200
+    setTotalUnits(units);
+    setTotalBill(bill);
+  };
 
-    setBill(amount);
+  const reset = () => {
+    setPreviousReading('');
+    setCurrentReading('');
+    setRate('');
+    setTotalUnits(null);
+    setTotalBill(null);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>⚡ Electricity Bill Calculator ⚡</Text>
+      <Text style={styles.heading}>ELECTRICITY BILL</Text>
 
       <TextInput
         style={styles.input}
@@ -47,14 +53,26 @@ export default function HomeScreen() {
         onChangeText={setCurrentReading}
       />
 
-      <TouchableOpacity style={styles.button} onPress={calculateBill}>
-        <Text style={styles.buttonText}>Calculate Bill</Text>
-      </TouchableOpacity>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Rate per Unit (₹)"
+        keyboardType="numeric"
+        value={rate}
+        onChangeText={setRate}
+      />
 
-      {bill !== null && (
+      <View style={styles.buttonContainer}>
+        <Button title="Calculate Bill" onPress={calculateBill} />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button title="Reset" color="#777" onPress={reset} />
+      </View>
+
+      {totalBill !== null && (
         <View style={styles.resultBox}>
-          <Text style={styles.resultText}>Units Consumed: {parseFloat(currentReading) - parseFloat(previousReading)}</Text>
-          <Text style={styles.resultText}>Total Bill: ₹{bill.toFixed(2)}</Text>
+          <Text style={styles.resultText}>Total Units: {totalUnits}</Text>
+          <Text style={styles.resultText}>Total Bill: ₹{totalBill.toFixed(2)}</Text>
         </View>
       )}
     </View>
@@ -64,45 +82,37 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     padding: 20,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: '#F8F9FA',
   },
-  title: {
+  heading: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: '700',
+    color: '#333',
     marginBottom: 20,
-    color: "#222",
+    textAlign: 'center',
   },
   input: {
-    width: "90%",
     borderWidth: 1,
-    borderColor: "#aaa",
-    borderRadius: 10,
+    borderColor: '#999',
+    borderRadius: 8,
     padding: 10,
-    fontSize: 16,
-    marginBottom: 15,
+    marginBottom: 12,
+    backgroundColor: '#FFF',
   },
-  button: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
+  buttonContainer: {
+    marginVertical: 6,
   },
   resultBox: {
     marginTop: 30,
     padding: 15,
-    backgroundColor: "#e8f5e9",
     borderRadius: 10,
+    backgroundColor: '#E9ECEF',
   },
   resultText: {
     fontSize: 18,
-    color: "#333",
+    fontWeight: '600',
+    color: '#222',
+    marginVertical: 4,
   },
 });
